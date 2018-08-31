@@ -79,6 +79,7 @@ class QaSrlReader(DatasetReader):
                 annotations = []
                 for _, verb_entry in item["verbEntries"].items():
                     verb_index = verb_entry["verbIndex"]
+                    question_labels = [l for _, l in verb_entry["questionLabels"].items()]
 
                     self._num_verbs += 1
 
@@ -115,7 +116,7 @@ class QaSrlReader(DatasetReader):
 
                     if annotations:
                         self._instances += 1
-                        yield self._make_instance_from_text(sentence_tokens, verb_index, annotations = annotations, sent_id = sent_id)
+                        yield self._make_instance_from_text(sentence_tokens, verb_index, annotations = annotations, sent_id = sent_id, question_labels = question_labels)
                     else:
                         self._no_ann += 1
 
@@ -126,7 +127,7 @@ class QaSrlReader(DatasetReader):
         logger.info("\t%d not enough answers"%self._not_enough_answers)
         logger.info("\t%d not enough valid answers"%self._not_enough_valid_answers)
 
-    def _make_instance_from_text(self, sent_tokens, pred_index, annotations = None, sent_id = None):
+    def _make_instance_from_text(self, sent_tokens, pred_index, annotations = None, sent_id = None, question_labels = None):
         instance_dict = {}
 
         if isinstance(sent_tokens, str):
@@ -155,7 +156,7 @@ class QaSrlReader(DatasetReader):
                         bio_labels[i] = "I-ARG"
                 instance_dict["bio_label"] = SequenceLabelField(bio_labels, text_field, label_namespace="bio_labels")
 
-            instance_dict['annotations'] = MetadataField({'annotations':annotations})
+            instance_dict['annotations'] = MetadataField({'annotations':annotations, 'question_labels': question_labels})
 
         metadata = {'pred_index' : pred_index, 'sent_text': " ".join(sent_tokens)}
         if sent_id is not None:
