@@ -110,13 +110,13 @@ class QaSrlReader(DatasetReader):
                             if ans["isValid"]:
                                 for s in ans["spans"]:
                                     spans.append(Span(s[0], s[1]-1))
-                        
+
                         self._qa_pairs += 1
                         annotations.append(AnnotatedSpan(slots = slots, all_spans = spans, provinence=provinence))
 
                     if annotations:
                         self._instances += 1
-                        yield self._make_instance_from_text(sentence_tokens, verb_index, annotations = annotations, sent_id = sent_id, question_labels = question_labels)
+                        yield self._make_instance_from_text(sentence_tokens, verb_index, annotations = annotations, sent_id = sent_id, question_labels = question_labels, verb_inflected_forms = verb_entry["verbInflectedForms"])
                     else:
                         self._no_ann += 1
 
@@ -127,7 +127,7 @@ class QaSrlReader(DatasetReader):
         logger.info("\t%d not enough answers"%self._not_enough_answers)
         logger.info("\t%d not enough valid answers"%self._not_enough_valid_answers)
 
-    def _make_instance_from_text(self, sent_tokens, pred_index, annotations = None, sent_id = None, question_labels = None):
+    def _make_instance_from_text(self, sent_tokens, pred_index, annotations = None, sent_id = None, question_labels = None, verb_inflected_forms = None):
         instance_dict = {}
 
         if isinstance(sent_tokens, str):
@@ -161,6 +161,8 @@ class QaSrlReader(DatasetReader):
         metadata = {'pred_index' : pred_index, 'sent_text': " ".join(sent_tokens)}
         if sent_id is not None:
             metadata['sent_id'] = sent_id
+            metadata['sentence_tokens'] = sent_tokens
+            metadata['verb_inflected_forms'] = verb_inflected_forms
         instance_dict['metadata'] = MetadataField(metadata)
 
         return Instance(instance_dict)
