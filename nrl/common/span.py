@@ -1,5 +1,8 @@
 from typing import List
 
+from functools import total_ordering
+
+@total_ordering
 class Span:
     def __init__(self, start : int, end : int) -> None:
         assert start <= end, "The end index of a span must be >= the start index (got start=%d, end=%d)"%(start, end)
@@ -26,6 +29,11 @@ class Span:
     def __hash__(self):
         """Override the default hash behavior (that returns the id or the object)"""
         return hash(tuple(sorted(self.__dict__.items())))
+
+    def __lt__(self, other):
+        if isinstance(other, self.__class__):
+            return self._start < other._start or (self._start == other._start and self._end < other._end)
+        return NotImplemented
 
     def overlaps(self, other : 'Span'):
         return (self._end >= other._start and self._start <= other._start) or (other._end >= self._start and other._start <= self._end)
@@ -70,6 +78,9 @@ class Span:
         union = float(self.size()) + float(other.size()) - i
         iou = i / union
         return iou
+
+    def to_json(self):
+        return [self._start, self._end]
 
     @classmethod
     def from_qasrl_string(cls, string:str) -> List['Span']:
