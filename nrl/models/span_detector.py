@@ -29,13 +29,13 @@ class SpanDetector(Model):
                  text_field_embedder: TextFieldEmbedder,
                  stacked_encoder: Seq2SeqEncoder,
                  predicate_feature_dim: int,
-                 dim_hidden: int = 100,
+                 hidden_dim: int = 100,
                  embedding_dropout: float = 0.0,
                  initializer: InitializerApplicator = InitializerApplicator(),
                  regularizer: Optional[RegularizerApplicator] = None):
         super(SpanDetector, self).__init__(vocab, regularizer)
 
-        self.dim_hidden = dim_hidden
+        self.hidden_dim = hidden_dim
 
         self.text_field_embedder = text_field_embedder
         self.predicate_feature_embedding = Embedding(2, predicate_feature_dim)
@@ -46,8 +46,8 @@ class SpanDetector(Model):
 
         self.stacked_encoder = stacked_encoder
 
-        self.span_hidden = SpanRepAssembly(self.stacked_encoder.get_output_dim(), self.stacked_encoder.get_output_dim(), self.dim_hidden)
-        self.pred = TimeDistributed(Linear(self.dim_hidden, 1))
+        self.span_hidden = SpanRepAssembly(self.stacked_encoder.get_output_dim(), self.stacked_encoder.get_output_dim(), self.hidden_dim)
+        self.pred = TimeDistributed(Linear(self.hidden_dim, 1))
 
     def forward(self,  # type: ignore
                 text: Dict[str, torch.LongTensor],
@@ -196,27 +196,6 @@ class SpanDetector(Model):
                 if i != j and label[0] == 'I' and not previous_label == 'B' + label[1:]:
                     transition_matrix[i, j] = float("-inf")
         return transition_matrix
-
-    @classmethod
-    def from_params(cls, vocab: Vocabulary, params: Params) -> 'SpanDetector':
-        embedder_params = params.pop("text_field_embedder")
-        text_field_embedder = TextFieldEmbedder.from_params(vocab, embedder_params)
-        stacked_encoder = Seq2SeqEncoder.from_params(params.pop("stacked_encoder"))
-        predicate_feature_dim = params.pop("predicate_feature_dim")
-        dim_hidden = params.pop("hidden_dim", 100)
-
-        initializer = InitializerApplicator.from_params(params.pop('initializer', []))
-        regularizer = RegularizerApplicator.from_params(params.pop('regularizer', []))
-
-        params.assert_empty(cls.__name__)
-
-        return cls(vocab=vocab,
-                   text_field_embedder=text_field_embedder,
-                   stacked_encoder=stacked_encoder,
-                   predicate_feature_dim=predicate_feature_dim,
-                   dim_hidden = dim_hidden,
-                   initializer=initializer,
-                   regularizer=regularizer)
 
 def perceptron_loss(logits, prediction_mask, score_mask):
     batch_size, seq_length, _ = logits.size()

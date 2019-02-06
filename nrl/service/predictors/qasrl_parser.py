@@ -134,11 +134,11 @@ class QaSrlParserPredictor(Predictor):
                 added_weights.shape[0]/new_weights[num_words:].shape[0])))
             self._model.question_predictor.text_field_embedder.token_embedder_tokens.weight = Parameter(new_weights)
 
-        verbs_for_instances = results["verbs"] 
+        verbs_for_instances = results["verbs"]
         results["verbs"] = []
 
         span_outputs = self._model.span_detector.forward_on_instances(instances)
-        
+
         instances_with_spans = []
         instance_spans = []
         for instance, span_output in zip(instances, span_outputs):
