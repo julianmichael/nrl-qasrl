@@ -4,7 +4,7 @@
 .cache/
 data/glove
 data/elmo
-data/qasrl_parser_elmo
+data/qasrl_parser_elmo*
 demo/node_modules
 demo/package-lock.json
 /env
