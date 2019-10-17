@@ -1,5 +1,8 @@
 #!/bin/bash
 
+BASEDIR=`basename $0`
+pushd $BASEDIR
+
 ggID='1FvMpjTfumVaSfwTOdWbJfEYFgGSAs0CS'  
 ggURL='https://drive.google.com/uc?export=download'  
 model_name="qasrl_parser_elmo"
@@ -18,3 +21,4 @@ tar zxvf "${archive}" -C "${target_dir}"
 
 echo "Done."
 
+popd
